@@ -1,4 +1,4 @@
-# Diploma Project: Multi-Agent Assistant System
+Multi-Agent Business Desicion-Making Assistant
 
 ## Overview
 
