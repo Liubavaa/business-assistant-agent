@@ -1,20 +1,20 @@
 import os
+import re
+import urllib.request
 from typing import Optional
+from bs4 import BeautifulSoup
+from pydantic import BaseModel, Field
 
 from langchain.chat_models import init_chat_model
-from langgraph.graph import START, END, StateGraph
-from langgraph.graph.state import CompiledStateGraph
-from pydantic import BaseModel, Field
 from langchain_google_vertexai import ChatVertexAI
 from langchain_community.utilities import GoogleSerperAPIWrapper
-
-import urllib.request
-from bs4 import BeautifulSoup
-import re
+from langgraph.graph import START, END, StateGraph
+from langgraph.graph.state import CompiledStateGraph
 
 os.environ["SERPER_API_KEY"] = "586937ba4cca312a704e4626222cbe414e773fcb"
 serper_search = GoogleSerperAPIWrapper()
 
+# -------------------- Data Schemas --------------------
 
 class CompanyUrl(BaseModel):
     company_url: str = Field(description="The url of the company website.")
@@ -33,6 +33,7 @@ class WebsiteAnalysisState(BaseModel):
                                          description="Any additional information or requests from the user regarding the website.")
     website_analysis: Optional[str] = Field(default=None, description="The analysis result.")
 
+# -------------------- Functional Nodes --------------------
 
 def search_company_url(name: str, llm) -> str:
     """Search for official website of a company or competitor by name."""
@@ -104,11 +105,10 @@ Provide a detailed, clear output.
     result = llm.invoke(system_prompt)
     return {"website_analysis": result.content}
 
+# -------------------- Graph Construction --------------------
 
 def get_web_graph(model: str = "gemini-2.0-flash") -> CompiledStateGraph:
-    import os
-    os.environ["OPENAI_API_KEY"] = "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"
-    llm = init_chat_model("gpt-4o-mini", model_provider="openai")
+    llm = ChatVertexAI(model=model, temperature=0)
 
     builder_web = StateGraph(WebsiteAnalysisState)
 
